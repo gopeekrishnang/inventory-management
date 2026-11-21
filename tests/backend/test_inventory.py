@@ -142,3 +142,48 @@ class TestInventoryEndpoints:
         # All items should be Power Supplies
         for item in data:
             assert item["category"].lower() == "power supplies"
+
+    def test_get_inventory_low_stock_only(self, client):
+        """Test that low_stock=true returns exactly the low-stock items."""
+        response = client.get("/api/inventory?low_stock=true")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert isinstance(data, list)
+
+        for item in data:
+            assert item["quantity_on_hand"] <= item["reorder_point"]
+
+        all_items = client.get("/api/inventory").json()
+        expected_ids = {
+            item["id"] for item in all_items
+            if item["quantity_on_hand"] <= item["reorder_point"]
+        }
+        assert {item["id"] for item in data} == expected_ids
+
+    def test_get_inventory_low_stock_false(self, client):
+        """Test that low_stock=false returns the unfiltered response."""
+        response = client.get("/api/inventory?low_stock=false")
+        assert response.status_code == 200
+
+        assert response.json() == client.get("/api/inventory").json()
+
+    def test_get_inventory_low_stock_with_warehouse(self, client):
+        """Test combining low_stock with the warehouse filter."""
+        response = client.get("/api/inventory?low_stock=true&warehouse=Tokyo")
+        assert response.status_code == 200
+
+        data = response.json()
+        assert isinstance(data, list)
+
+        for item in data:
+            assert item["warehouse"] == "Tokyo"
+            assert item["quantity_on_hand"] <= item["reorder_point"]
+
+        all_items = client.get("/api/inventory").json()
+        expected_ids = {
+            item["id"] for item in all_items
+            if item["warehouse"] == "Tokyo"
+            and item["quantity_on_hand"] <= item["reorder_point"]
+        }
+        assert {item["id"] for item in data} == expected_ids
