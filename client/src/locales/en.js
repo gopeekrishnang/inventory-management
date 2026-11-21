@@ -80,6 +80,8 @@ export default {
     skus: 'SKUs',
     searchPlaceholder: 'Search by item name...',
     clearSearch: 'Clear search',
+    lowStockOnly: 'Low stock only',
+    noResults: 'No items match the current filters',
     totalItems: 'Total Items',
     totalValue: 'Total Value',
     lowStockItems: 'Low Stock Items',

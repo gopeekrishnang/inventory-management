@@ -11,26 +11,32 @@
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('inventory.stockLevels') }} ({{ filteredItems.length }} {{ t('inventory.skus') }})</h3>
-          <div class="search-box">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="t('inventory.searchPlaceholder')"
-              class="search-input"
-            />
-            <button
-              v-if="searchQuery"
-              @click="searchQuery = ''"
-              class="clear-search"
-              :title="t('inventory.clearSearch')"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          <div class="header-controls">
+            <label class="low-stock-toggle">
+              <input v-model="lowStockOnly" type="checkbox" />
+              <span>{{ t('inventory.lowStockOnly') }}</span>
+            </label>
+            <div class="search-box">
+              <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
               </svg>
-            </button>
+              <input
+                v-model="searchQuery"
+                type="text"
+                :placeholder="t('inventory.searchPlaceholder')"
+                class="search-input"
+              />
+              <button
+                v-if="searchQuery"
+                @click="searchQuery = ''"
+                class="clear-search"
+                :title="t('inventory.clearSearch')"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         <div class="table-container">
@@ -69,6 +75,9 @@
                   </span>
                 </td>
               </tr>
+              <tr v-if="filteredItems.length === 0">
+                <td colspan="9" class="no-data">{{ t('inventory.noResults') }}</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -106,6 +115,7 @@ export default {
     const error = ref(null)
     const items = ref([])
     const searchQuery = ref('')
+    const lowStockOnly = ref(false)
 
     // Modal state
     const showItemModal = ref(false)
@@ -156,7 +166,8 @@ export default {
         // Inventory doesn't support month/status filters, only warehouse and category
         items.value = await api.getInventory({
           warehouse: filters.warehouse,
-          category: filters.category
+          category: filters.category,
+          lowStock: lowStockOnly.value
         })
       } catch (err) {
         error.value = 'Failed to load inventory: ' + err.message
@@ -166,7 +177,7 @@ export default {
     }
 
     // Watch for filter changes and reload data
-    watch([selectedLocation, selectedCategory], () => {
+    watch([selectedLocation, selectedCategory, lowStockOnly], () => {
       loadInventory()
     })
 
@@ -209,6 +220,7 @@ export default {
       error,
       items,
       searchQuery,
+      lowStockOnly,
       filteredItems,
       getStockStatus,
       getStockStatusClass,
@@ -252,6 +264,29 @@ export default {
   font-weight: 600;
   color: #0f172a;
   margin: 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.low-stock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.low-stock-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: #0f172a;
+  cursor: pointer;
 }
 
 .search-box {
@@ -326,6 +361,13 @@ export default {
 
 .error {
   color: #ef4444;
+}
+
+.no-data {
+  padding: 2rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.875rem;
 }
 
 .clickable-row {
