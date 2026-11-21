@@ -6,7 +6,6 @@
     </div>
 
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
       <div class="card">
         <div class="card-header">
@@ -39,7 +38,8 @@
             </div>
           </div>
         </div>
-        <div class="table-container">
+        <div v-if="error" class="error">{{ error }}</div>
+        <div v-else class="table-container">
           <table>
             <thead>
               <tr>
@@ -161,7 +161,9 @@ export default {
 
     const loadInventory = async () => {
       try {
-        loading.value = true
+        // Full-page loading only shows on the first load (loading starts true), so reloads
+        // keep the card header, including the toggle and its focus, mounted
+        error.value = null
         const filters = getCurrentFilters()
         // Inventory doesn't support month/status filters, only warehouse and category
         items.value = await api.getInventory({
@@ -254,6 +256,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1.5rem;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
@@ -269,7 +272,9 @@ export default {
 .header-controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1rem;
+  max-width: 100%;
 }
 
 .low-stock-toggle {
@@ -293,7 +298,9 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 300px;
+  width: 300px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .search-icon {
@@ -366,7 +373,7 @@ export default {
 .no-data {
   padding: 2rem;
   text-align: center;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.875rem;
 }
 
