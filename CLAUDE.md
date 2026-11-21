@@ -49,7 +49,7 @@ npm install && npm run dev
 **Reactivity**: Raw data in refs (`allOrders`, `inventoryItems`), derived data in computed properties
 
 ## API Endpoints
-- `GET /api/inventory` - Filters: warehouse, category
+- `GET /api/inventory` - Filters: warehouse, category, low_stock
 - `GET /api/orders` - Filters: warehouse, category, status, month
 - `GET /api/dashboard/summary` - All filters
 - `GET /api/demand`, `/api/backlog` - No filters

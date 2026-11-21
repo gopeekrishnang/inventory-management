@@ -128,10 +128,14 @@ def root():
 @app.get("/api/inventory", response_model=List[InventoryItem])
 def get_inventory(
     warehouse: Optional[str] = None,
-    category: Optional[str] = None
+    category: Optional[str] = None,
+    low_stock: bool = False
 ):
     """Get all inventory items with optional filtering"""
-    return apply_filters(inventory_items, warehouse, category)
+    filtered_items = apply_filters(inventory_items, warehouse, category)
+    if low_stock:
+        filtered_items = [item for item in filtered_items if item["quantity_on_hand"] <= item["reorder_point"]]
+    return filtered_items
 
 @app.get("/api/inventory/{item_id}", response_model=InventoryItem)
 def get_inventory_item(item_id: str):
